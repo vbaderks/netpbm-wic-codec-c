@@ -3,6 +3,7 @@
 
 #include "pch.h"
 
+#include "module.h"
 #include "macros.h"
 #include "guids.h"
 #include "property_store.h"
@@ -48,20 +49,12 @@ _Use_decl_annotations_ HRESULT __stdcall DllGetClassObject(REFCLSID class_id, RE
         return create_property_store_class_factory(interface_id, result);
     }
 
-    TRACE("netpbm-wic-codec::DllGetClassObject error class not available\n");
+    TRACE("netpbm-wic-codec-c::DllGetClassObject error class not available\n");
     return CLASS_E_CLASSNOTAVAILABLE;
 }
 
 _Use_decl_annotations_ HRESULT __stdcall DllCanUnloadNow(void)
 {
-    // Check if the DLL can be unloaded
-    return S_OK;
-    //if (/* condition to check if DLL can be unloaded */)
-    //{
-    //    return S_OK;
-    //}
-    //else
-    //{
-    //    return S_FALSE;
-    //}
+    TRACE("netpbm-wic-codec-c::DllCanUnloadNow error class not available\n");
+    return ModuleIsLocked() ? S_FALSE : S_OK;
 }

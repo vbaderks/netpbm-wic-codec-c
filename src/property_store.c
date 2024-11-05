@@ -5,6 +5,7 @@
 
 #include <stdio.h>
 
+#include "module.h"
 
 
 
@@ -20,7 +21,6 @@ inline  HRESULT InitPropVariantFromInt32(_In_ LONG lVal, _Out_ PROPVARIANT* ppro
     V_UNION(ppropvar, lVal) = lVal;
     return S_OK;
 }
-
 
 
 // Define a custom structure for the PropertyStore
@@ -86,7 +86,9 @@ ULONG STDMETHODCALLTYPE IInitializeWithStream_Release(IInitializeWithStream* thi
             PropVariantClear(&ps->values[i]);
         }
         free(ps);
+        ModuleRelease();
     }
+
     return ref_count;
 }
 
@@ -326,20 +328,29 @@ HRESULT STDMETHODCALLTYPE classCreateInstance(IClassFactory* this,
 ULONG STDMETHODCALLTYPE classAddRef(IClassFactory* this)
 {
     UNREFERENCED_PARAMETER(this);
-    return(1);
+    return ModuleAddRef();
 }
 
 ULONG STDMETHODCALLTYPE classRelease(IClassFactory* this)
 {
     UNREFERENCED_PARAMETER(this);
-    return(1);
+    return ModuleRelease();
 }
 
-HRESULT STDMETHODCALLTYPE classLockServer(IClassFactory* this, BOOL flock)
+HRESULT STDMETHODCALLTYPE classLockServer(IClassFactory* this, const BOOL flock)
 {
     UNREFERENCED_PARAMETER(this);
-    UNREFERENCED_PARAMETER(flock);
-    return(NOERROR);
+
+    if (flock)
+    {
+        ModuleAddRef();
+    }
+    else
+    {
+        ModuleRelease();
+    }
+
+    return S_OK;
 }
 
 

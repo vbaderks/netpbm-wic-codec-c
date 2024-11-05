@@ -27,6 +27,9 @@
     <ClCompile Include="guids.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="module.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="macros.h">
@@ -39,6 +42,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="property_store.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="module.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
