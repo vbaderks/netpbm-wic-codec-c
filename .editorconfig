@@ -1,0 +1,30 @@
+# Copyright (c) Team CharLS.
+# SPDX-License-Identifier: BSD-3-Clause
+
+root = true
+
+# Default settings
+[*]
+charset = utf-8
+indent_style = space
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+# Spell checker configuration
+spelling_exclusion_path = spelling.dic
+
+[*.{h,c}]
+end_of_line = crlf
+indent_size = 4
+
+# MSBuild files
+[*.{props,vcxproj}]
+indent_size = 2
+insert_final_newline = false # Follow formatting of Visual Studio
+
+[*.yml]
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false # Ending with 2 spaces is used for layout in Markdown
+indent_size = 2
