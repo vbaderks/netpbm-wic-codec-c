@@ -34,8 +34,8 @@ BOOL __stdcall DllMain(const HMODULE module, const DWORD reason_for_call, void *
     return true;
 }
 
-_Check_return_ HRESULT __stdcall DllGetClassObject(_In_ REFCLSID class_id, _In_ REFCLSID interface_id,
-    _Outptr_ void** result)
+_Use_decl_annotations_ HRESULT __stdcall DllGetClassObject(REFCLSID class_id, REFCLSID interface_id,
+    void** result)
 {
     //if (class_id == id::netpbm_decoder)
     //{
@@ -52,7 +52,7 @@ _Check_return_ HRESULT __stdcall DllGetClassObject(_In_ REFCLSID class_id, _In_ 
     return CLASS_E_CLASSNOTAVAILABLE;
 }
 
-_Check_return_ HRESULT __stdcall DllCanUnloadNow(void)
+_Use_decl_annotations_ HRESULT __stdcall DllCanUnloadNow(void)
 {
     // Check if the DLL can be unloaded
     return S_OK;
