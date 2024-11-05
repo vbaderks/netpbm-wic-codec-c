@@ -216,113 +216,48 @@ HRESULT CreatePropertyStore(PropertyStore **ppStore) {
 }
 
 HRESULT STDMETHODCALLTYPE classQueryInterface(IClassFactory* this,
-    REFIID factoryGuid, void** ppv)
+    REFIID riid, void** ppv)
 {
-    // Check if the GUID matches an IClassFactory or IUnknown GUID.
-
-    if (!IsEqualIID(factoryGuid, &IID_IUnknown) &&
-        !IsEqualIID(factoryGuid, &IID_IClassFactory))
+    if (!IsEqualIID(riid, &IID_IUnknown) &&
+        !IsEqualIID(riid, &IID_IClassFactory))
     {
-        // It doesn't. Clear his handle, and return E_NOINTERFACE.
-
-        *ppv = 0;
-        return(E_NOINTERFACE);
+        *ppv = NULL;
+        return E_NOINTERFACE;
     }
 
-    // It's a match!
-
-    // First, we fill in his handle with the same object pointer he passed us.
-    // That's our IClassFactory (MyIClassFactoryObj) he obtained from us.
-
     *ppv = this;
-
-    // Call our IClassFactory's AddRef, passing the IClassFactory. 
     this->lpVtbl->AddRef(this);
 
-    // Let him know he indeed has an IClassFactory. 
-
-    return(NOERROR);
+    return S_OK;
 }
 
 HRESULT STDMETHODCALLTYPE classCreateInstance(IClassFactory* this,
     IUnknown* punkOuter, REFIID vTableGuid, void** ppv)
 {
     UNREFERENCED_PARAMETER(this);
-    UNREFERENCED_PARAMETER(vTableGuid);
-
-    HRESULT          hr = S_OK;
-    //struct IExample* thisobj;
-
-    // Assume an error by clearing caller's handle.
-
-    *ppv = 0;
-
-    // We don't support aggregation in IExample.
 
     if (punkOuter)
-        hr = CLASS_E_NOAGGREGATION;
-    else
     {
-        // Create our IExample object, and initialize it.
-
-        //if (!(thisobj = GlobalAlloc(GMEM_FIXED,
-        //    sizeof(struct IExample))))
-        //    hr = E_OUTOFMEMORY;
-        //else
-        //{
-        //    // Store IExample's VTable. We declared it
-
-        //    // as a static variable IExample_Vtbl.
-
-        //    thisobj->lpVtbl = &IExample_Vtbl;
-
-        //    // Increment reference count so we
-
-        //    // can call Release() below and it will
-
-        //    // deallocate only if there
-
-        //    // is an error with QueryInterface().
-
-        //    thisobj->count = 1;
-
-        //    // Fill in the caller's handle
-
-        //    // with a pointer to the IExample we just
-
-        //    // allocated above. We'll let IExample's
-
-        //    // QueryInterface do that, because
-
-        //    // it also checks the GUID the caller
-
-        //    // passed, and also increments the
-
-        //    // reference count (to 2) if all goes well.
-
-        //    hr = IExample_Vtbl.QueryInterface(thisobj, vTableGuid, ppv);
-
-        //    // Decrement reference count.
-
-        //    // NOTE: If there was an error in QueryInterface()
-
-        //    // then Release() will be decrementing
-
-        //    // the count back to 0 and will free the
-
-        //    // IExample for us. One error that may
-
-        //    // occur is that the caller is asking for
-
-        //    // some sort of object that we don't
-
-        //    // support (ie, it's a GUID we don't recognize).
-
-        //    IExample_Vtbl.Release(thisobj);
-        //}
+        *ppv = NULL;
+        return CLASS_E_NOAGGREGATION;
     }
 
-    return(hr);
+    PropertyStore* ps = malloc(sizeof(PropertyStore));
+    if (!ps)
+    {
+        *ppv = NULL;
+        return E_OUTOFMEMORY;
+    }
+
+    // Initialize vtable and reference count
+    ps->property_store.lpVtbl = &g_PropertyStore_Vtbl;
+    ps->initialize_with_stream.lpVtbl = &g_InitializeWithStream_Vtbl;
+    ps->refCount = 1;
+    ps->initialized = false;
+    HRESULT hr = g_PropertyStore_Vtbl.QueryInterface(&ps->property_store, vTableGuid, ppv);
+    g_PropertyStore_Vtbl.Release(&ps->property_store);
+
+    return hr;
 }
 
 ULONG STDMETHODCALLTYPE classAddRef(IClassFactory* this)
