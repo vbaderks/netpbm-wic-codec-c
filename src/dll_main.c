@@ -8,11 +8,11 @@
 #include "guids.h"
 #include "property_store.h"
 
-BOOL __stdcall DllMain(const HMODULE module, const DWORD reason_for_call, void * reserved)
+BOOL __stdcall DllMain(const HMODULE module, const DWORD reasonForCall, const void *reserved)
 {
     UNREFERENCED_PARAMETER(reserved);
 
-    switch (reason_for_call)
+    switch (reasonForCall)
     {
     case DLL_PROCESS_ATTACH:
         TRACE("netpbm-wic-codec::DllMain DLL_PROCESS_ATTACH \n");
@@ -35,18 +35,17 @@ BOOL __stdcall DllMain(const HMODULE module, const DWORD reason_for_call, void *
     return true;
 }
 
-_Use_decl_annotations_ HRESULT __stdcall DllGetClassObject(REFCLSID class_id, REFCLSID interface_id,
-    void** result)
+_Use_decl_annotations_ HRESULT __stdcall DllGetClassObject(REFCLSID rclsid, REFCLSID riid, void** ppv)
 {
-    //if (class_id == id::netpbm_decoder)
+    //if (classId == id::netpbm_decoder)
     //{
     //    create_netpbm_bitmap_decoder_factory(interface_id, result);
     //    return S_OK;
     //}
 
-    if (IsEqualGUID(class_id, &CLSID_PropertyStore))
+    if (IsEqualGUID(rclsid, &CLSID_PropertyStore))
     {
-        return create_property_store_class_factory(interface_id, result);
+        return create_property_store_class_factory(riid, ppv);
     }
 
     TRACE("netpbm-wic-codec-c::DllGetClassObject error class not available\n");

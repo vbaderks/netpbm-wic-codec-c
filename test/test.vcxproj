@@ -134,6 +134,14 @@
     <ClCompile Include="main.c" />
     <ClCompile Include="property_store_test_suite.c" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\src\netpbm-wic-codec-c.vcxproj">
+      <Project>{b37e7581-86d5-484c-a29d-70ed94d70ae6}</Project>
+      <Private>false</Private>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

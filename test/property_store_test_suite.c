@@ -6,6 +6,7 @@
 
 #include <Windows.h>
 #include <unknwn.h>
+#include <propsys.h>
 
 typedef HRESULT(WINAPI* DllGetClassObjectPtr)(
     const CLSID* rclsid,
@@ -55,7 +56,7 @@ CLOVE_SUITE_TEARDOWN_ONCE() {
 CLOVE_TEST(GetClassFactory) {
     IClassFactory* classFactory = GetClassObject(&IID_IClassFactory);
 
-    CLOVE_IS_TRUE(classFactory);
+    CLOVE_NOT_NULL(classFactory);
     classFactory->lpVtbl->Release(classFactory);
 
     HRESULT result = CallDllCanUnloadNow();
@@ -65,7 +66,56 @@ CLOVE_TEST(GetClassFactory) {
 CLOVE_TEST(GetClassFactoryIUnknown) {
     IUnknown* classFactory = GetClassObject(&IID_IUnknown);
 
-    CLOVE_IS_TRUE(classFactory);
+    CLOVE_NOT_NULL(classFactory);
+    classFactory->lpVtbl->Release(classFactory);
+
+    HRESULT result = CallDllCanUnloadNow();
+    CLOVE_UINT_EQ(S_OK, result);
+}
+
+CLOVE_TEST(CreatePropertyStoreGetIUnknown)
+{
+    IClassFactory *classFactory = GetClassObject(&IID_IClassFactory);
+
+    IUnknown *unknown = NULL;
+    classFactory->lpVtbl->CreateInstance(classFactory, NULL, &IID_IInitializeWithStream, (void **)&unknown);
+
+    CLOVE_NOT_NULL(unknown);
+
+    classFactory->lpVtbl->Release(classFactory);
+    unknown->lpVtbl->Release(unknown);
+
+    HRESULT result = CallDllCanUnloadNow();
+    CLOVE_UINT_EQ(S_OK, result);
+}
+
+CLOVE_TEST(CreatePropertyStoreGetIInitializeWithStream) {
+    IClassFactory* classFactory = GetClassObject(&IID_IClassFactory);
+
+    IInitializeWithStream* initializeWithStream = NULL;
+    classFactory->lpVtbl->CreateInstance(classFactory, NULL, &IID_IInitializeWithStream, (void**)&initializeWithStream);
+
+    CLOVE_NOT_NULL(initializeWithStream);
+
+    classFactory->lpVtbl->Release(classFactory);
+    initializeWithStream->lpVtbl->Release(initializeWithStream);
+
+    HRESULT result = CallDllCanUnloadNow();
+    CLOVE_UINT_EQ(S_OK, result);
+}
+
+CLOVE_TEST(CreatePropertyStoreGetIPropertyStore) {
+    IClassFactory* classFactory = GetClassObject(&IID_IClassFactory);
+
+    IPropertyStore* propertyStore = NULL;
+    classFactory->lpVtbl->CreateInstance(classFactory, NULL, &IID_IPropertyStore, (void**)&propertyStore);
+
+    CLOVE_NOT_NULL(propertyStore);
+    if (propertyStore)
+    {
+        propertyStore->lpVtbl->Release(propertyStore);
+    }
+
     classFactory->lpVtbl->Release(classFactory);
 
     HRESULT result = CallDllCanUnloadNow();
