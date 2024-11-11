@@ -7,6 +7,7 @@
 #include "macros.h"
 #include "guids.h"
 #include "property_store.h"
+#include "netpbm_bitmap_decoder.h"
 
 BOOL __stdcall DllMain(const HMODULE module, const DWORD reasonForCall, const void *reserved)
 {
@@ -37,15 +38,14 @@ BOOL __stdcall DllMain(const HMODULE module, const DWORD reasonForCall, const vo
 
 _Use_decl_annotations_ HRESULT __stdcall DllGetClassObject(REFCLSID rclsid, REFCLSID riid, void** ppv)
 {
-    //if (classId == id::netpbm_decoder)
-    //{
-    //    create_netpbm_bitmap_decoder_factory(interface_id, result);
-    //    return S_OK;
-    //}
+    if (IsEqualGUID(rclsid, &CLSID_WICBitmapDecoder))
+    {
+        return CreateWICBitmapDecoderClassFactory(riid, ppv);
+    }
 
     if (IsEqualGUID(rclsid, &CLSID_PropertyStore))
     {
-        return create_property_store_class_factory(riid, ppv);
+        return CreatePropertyStoreClassFactory(riid, ppv);
     }
 
     TRACE("netpbm-wic-codec-c::DllGetClassObject error class not available\n");
@@ -54,6 +54,6 @@ _Use_decl_annotations_ HRESULT __stdcall DllGetClassObject(REFCLSID rclsid, REFC
 
 _Use_decl_annotations_ HRESULT __stdcall DllCanUnloadNow(void)
 {
-    TRACE("netpbm-wic-codec-c::DllCanUnloadNow error class not available\n");
+    TRACE("netpbm-wic-codec-c::DllCanUnloadNow\n");
     return ModuleIsLocked() ? S_FALSE : S_OK;
 }

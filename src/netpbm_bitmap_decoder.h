@@ -5,4 +5,4 @@
 
 #include <Windows.h>
 
-HRESULT CreatePropertyStoreClassFactory(_In_ REFCLSID interfaceId, _Outptr_ void** result);
+HRESULT CreateWICBitmapDecoderClassFactory(_In_ REFCLSID interfaceId, _Outptr_ void **result);

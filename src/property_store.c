@@ -3,6 +3,9 @@
 
 #include "pch.h"
 
+#include "property_store.h"
+
+#include "class_factory.h"
 #include "macros.h"
 #include "module.h"
 
@@ -19,6 +22,7 @@ typedef struct PropertyStore
 {
     IInitializeWithStream initialize_with_stream;
     IPropertyStore property_store;
+    IPropertyStoreCapabilities propertyStoreCapabilities;
     volatile bool initialized;
     LONG refCount;
     PROPVARIANT values[5]; // Sample data (could be dynamically allocated for flexibility)
@@ -26,12 +30,12 @@ typedef struct PropertyStore
 } PropertyStore;
 
 
-ULONG STDMETHODCALLTYPE AddRef(PropertyStore *this)
+static ULONG STDMETHODCALLTYPE AddRef(_In_ PropertyStore *this)
 {
     return InterlockedIncrement(&this->refCount);
 }
 
-ULONG STDMETHODCALLTYPE Release(PropertyStore *this)
+static ULONG STDMETHODCALLTYPE Release(_In_ PropertyStore *this)
 {
     const ULONG refCount = InterlockedDecrement(&this->refCount);
     if (refCount == 0)
@@ -47,63 +51,66 @@ ULONG STDMETHODCALLTYPE Release(PropertyStore *this)
     return refCount;
 }
 
-HRESULT STDMETHODCALLTYPE QueryInterface(PropertyStore *this, REFIID riid, void **ppv)
+static HRESULT STDMETHODCALLTYPE QueryInterface(_In_ PropertyStore *this, _In_ REFIID riid, _COM_Outptr_ void **ppv)
 {
-    static const QITAB qit[] = {
-        QITABENT(PropertyStore, IInitializeWithStream), QITABENT(PropertyStore, IPropertyStore), {NULL, 0}};
+    static const QITAB qiTable[] = {QITABENT(PropertyStore, IInitializeWithStream),
+                                    QITABENT(PropertyStore, IPropertyStore),
+                                    QITABENT(PropertyStore, IPropertyStoreCapabilities),
+                                    {NULL, 0}};
 
-    return QISearch(this, qit, riid, ppv);
+    return QISearch(this, qiTable, riid, ppv);
 }
 
-ULONG STDMETHODCALLTYPE IInitializeWithStream_AddRef(IInitializeWithStream *this)
+static ULONG STDMETHODCALLTYPE IInitializeWithStream_AddRef(_In_ IInitializeWithStream *this)
 {
     return AddRef((PropertyStore *)((char *)this - offsetof(PropertyStore, initialize_with_stream)));
 }
 
-ULONG STDMETHODCALLTYPE IInitializeWithStream_Release(IInitializeWithStream *this)
+static ULONG STDMETHODCALLTYPE IInitializeWithStream_Release(_In_ IInitializeWithStream *this)
 {
     return Release((PropertyStore *)((char *)this - offsetof(PropertyStore, initialize_with_stream)));
 }
 
-HRESULT STDMETHODCALLTYPE IInitializeWithStream_QueryInterface(IInitializeWithStream *this, REFIID riid, void **ppv)
+static HRESULT STDMETHODCALLTYPE IInitializeWithStream_QueryInterface(_In_ IInitializeWithStream *this, _In_ REFIID riid,
+                                                               _COM_Outptr_ void **ppv)
 {
     return QueryInterface((PropertyStore *)((char *)this - offsetof(PropertyStore, initialize_with_stream)), riid, ppv);
 }
 
-HRESULT STDMETHODCALLTYPE IInitializeWithStream_Initialize([[maybe_unused]] IInitializeWithStream *this,
+static HRESULT STDMETHODCALLTYPE IInitializeWithStream_Initialize([[maybe_unused]] _In_ IInitializeWithStream *this,
                                                            [[maybe_unused]] _In_ IStream *pstream,
                                                            [[maybe_unused]] _In_ DWORD grfMode)
 {
     return S_OK;
 }
 
-ULONG STDMETHODCALLTYPE IPropertyStore_AddRef(IPropertyStore *this)
+static ULONG STDMETHODCALLTYPE IPropertyStore_AddRef(_In_ IPropertyStore *this)
 {
     return AddRef((PropertyStore *)((char *)this - offsetof(PropertyStore, property_store)));
 }
 
-ULONG STDMETHODCALLTYPE IPropertyStore_Release(IPropertyStore *this)
+static ULONG STDMETHODCALLTYPE IPropertyStore_Release(_In_ IPropertyStore *this)
 {
     return Release((PropertyStore *)((char *)this - offsetof(PropertyStore, property_store)));
 }
 
-HRESULT STDMETHODCALLTYPE IPropertyStore_QueryInterface(IPropertyStore *this, REFIID riid, void **ppvObject)
+static HRESULT STDMETHODCALLTYPE IPropertyStore_QueryInterface(_In_ IPropertyStore *this, _In_ REFIID riid,
+                                                        _COM_Outptr_ void **ppvObject)
 {
     return QueryInterface((PropertyStore *)((char *)this - offsetof(PropertyStore, initialize_with_stream)), riid,
                           ppvObject);
 }
 
-HRESULT STDMETHODCALLTYPE IPropertyStore_GetCount(IPropertyStore *this, DWORD *cProps)
+static HRESULT STDMETHODCALLTYPE IPropertyStore_GetCount([[maybe_unused]] IPropertyStore *this, DWORD *cProps)
 {
-    UNREFERENCED_PARAMETER(this);
-
     if (!cProps)
         return E_POINTER;
+
     *cProps = 5; // We have 5 properties in this example
     return S_OK;
 }
 
-HRESULT STDMETHODCALLTYPE IPropertyStore_GetAt(IPropertyStore *this, DWORD iProp, PROPERTYKEY *pkey)
+static HRESULT STDMETHODCALLTYPE IPropertyStore_GetAt(IPropertyStore *this, DWORD iProp, PROPERTYKEY *pkey)
 {
     PropertyStore *ps = (PropertyStore *)this;
     if (iProp >= 5)
@@ -116,7 +123,7 @@ HRESULT STDMETHODCALLTYPE IPropertyStore_GetAt(IPropertyStore *this, DWORD iProp
 #define IsEqualPropertyKey2(a, b) (((a)->pid == (b)->pid) && IsEqualIID(&((a)->fmtid), &((b)->fmtid)))
 
 
-HRESULT STDMETHODCALLTYPE IPropertyStore_GetValue(IPropertyStore *this, REFPROPERTYKEY key, PROPVARIANT *pv)
+static HRESULT STDMETHODCALLTYPE IPropertyStore_GetValue(IPropertyStore *this, REFPROPERTYKEY key, PROPVARIANT *pv)
 {
     PropertyStore *ps = (PropertyStore *)this;
     for (int i = 0; i < 5; ++i)
@@ -131,7 +138,7 @@ HRESULT STDMETHODCALLTYPE IPropertyStore_GetValue(IPropertyStore *this, REFPROPE
     return E_INVALIDARG; // Key not found
 }
 
-HRESULT STDMETHODCALLTYPE IPropertyStore_SetValue(IPropertyStore *this, REFPROPERTYKEY key, REFPROPVARIANT propvar)
+static HRESULT STDMETHODCALLTYPE IPropertyStore_SetValue(IPropertyStore *this, REFPROPERTYKEY key, REFPROPVARIANT propvar)
 {
     PropertyStore *ps = (PropertyStore *)this;
     for (int i = 0; i < 5; ++i)
@@ -144,36 +151,35 @@ HRESULT STDMETHODCALLTYPE IPropertyStore_SetValue(IPropertyStore *this, REFPROPE
     return E_INVALIDARG; // Key not found
 }
 
-HRESULT STDMETHODCALLTYPE IPropertyStore_Commit([[maybe_unused]] IPropertyStore *this)
+static HRESULT STDMETHODCALLTYPE IPropertyStore_Commit([[maybe_unused]] IPropertyStore *this)
 {
     return S_OK;
 }
 
-
-static IInitializeWithStreamVtbl initializeWithStreamVtbl = {IInitializeWithStream_QueryInterface,
-                                                             IInitializeWithStream_AddRef, IInitializeWithStream_Release,
-                                                             IInitializeWithStream_Initialize};
-
-static IPropertyStoreVtbl propertyStoreVtbl = {IPropertyStore_QueryInterface, IPropertyStore_AddRef, IPropertyStore_Release,
-                                               IPropertyStore_GetCount,       IPropertyStore_GetAt,  IPropertyStore_GetValue,
-                                               IPropertyStore_SetValue,       IPropertyStore_Commit};
-
-HRESULT STDMETHODCALLTYPE classQueryInterface(IClassFactory *this, REFIID riid, void **ppv)
+static HRESULT STDMETHODCALLTYPE IPropertyStoreCapabilities_QueryInterface(IPropertyStoreCapabilities *this, REFIID riid,
+                                                                    void **ppv)
 {
-    if (!IsEqualIID(riid, &IID_IUnknown) && !IsEqualIID(riid, &IID_IClassFactory))
-    {
-        *ppv = NULL;
-        return E_NOINTERFACE;
-    }
-
-    *ppv = this;
-    this->lpVtbl->AddRef(this);
-
-    return S_OK;
+    return QueryInterface((PropertyStore *)((char *)this - offsetof(PropertyStore, propertyStoreCapabilities)), riid, ppv);
 }
 
-HRESULT STDMETHODCALLTYPE IClassFactory_CreateInstance([[maybe_unused]] IClassFactory *this, IUnknown *punkOuter,
-                                                       REFIID vTableGuid, void **ppv)
+static ULONG STDMETHODCALLTYPE IPropertyStoreCapabilities_AddRef(IPropertyStoreCapabilities *this)
+{
+    return AddRef((PropertyStore *)((char *)this - offsetof(PropertyStore, propertyStoreCapabilities)));
+}
+
+static ULONG STDMETHODCALLTYPE IPropertyStoreCapabilities_Release(IPropertyStoreCapabilities *this)
+{
+    return Release((PropertyStore *)((char *)this - offsetof(PropertyStore, propertyStoreCapabilities)));
+}
+
+static HRESULT STDMETHODCALLTYPE IPropertyStoreCapabilities_IsPropertyWritable([[maybe_unused]] IPropertyStoreCapabilities *this,
+                                                                        [[maybe_unused]] REFPROPERTYKEY key)
+{
+    return S_FALSE;
+}
+
+static HRESULT STDMETHODCALLTYPE IClassFactory_CreateInstance([[maybe_unused]] IClassFactory *this, IUnknown *punkOuter,
+                                                              REFIID vTableGuid, void **ppv)
 {
     if (punkOuter)
     {
@@ -189,8 +195,21 @@ HRESULT STDMETHODCALLTYPE IClassFactory_CreateInstance([[maybe_unused]] IClassFa
     }
 
     // Initialize
+    static const IInitializeWithStreamVtbl initializeWithStreamVtbl = {
+        IInitializeWithStream_QueryInterface, IInitializeWithStream_AddRef, IInitializeWithStream_Release,
+        IInitializeWithStream_Initialize};
+
+    static const IPropertyStoreVtbl propertyStoreVtbl = {
+        IPropertyStore_QueryInterface, IPropertyStore_AddRef,   IPropertyStore_Release,  IPropertyStore_GetCount,
+        IPropertyStore_GetAt,          IPropertyStore_GetValue, IPropertyStore_SetValue, IPropertyStore_Commit};
+
+    static const IPropertyStoreCapabilitiesVtbl propertyStoreCapabilitiesVtbl = {
+        IPropertyStoreCapabilities_QueryInterface, IPropertyStoreCapabilities_AddRef, IPropertyStoreCapabilities_Release,
+        IPropertyStoreCapabilities_IsPropertyWritable};
+
     ps->initialize_with_stream.lpVtbl = &initializeWithStreamVtbl;
     ps->property_store.lpVtbl = &propertyStoreVtbl;
+    ps->propertyStoreCapabilities.lpVtbl = &propertyStoreCapabilitiesVtbl;
     ps->refCount = 0;
     ps->initialized = false;
     memset(ps->values, 0, sizeof(ps->values));
@@ -208,43 +227,13 @@ HRESULT STDMETHODCALLTYPE IClassFactory_CreateInstance([[maybe_unused]] IClassFa
     return hr;
 }
 
-
-ULONG STDMETHODCALLTYPE IClassFactory_AddRef([[maybe_unused]] IClassFactory *this)
+_Use_decl_annotations_ HRESULT CreatePropertyStoreClassFactory(REFCLSID interfaceId, void **result)
 {
-    return ModuleAddRef();
-}
+    static const IClassFactoryVtbl classFactoryVtbl = {IClassFactory_QueryInterface, IClassFactory_AddRef,
+                                                       IClassFactory_Release, IClassFactory_CreateInstance,
+                                                       IClassFactory_LockServer};
 
-ULONG STDMETHODCALLTYPE IClassFactory_Release([[maybe_unused]] IClassFactory *this)
-{
-    return ModuleRelease();
-}
+    static IClassFactory classFactory = {&classFactoryVtbl};
 
-HRESULT STDMETHODCALLTYPE IClassFactory_LockServer([[maybe_unused]] IClassFactory *this, const BOOL flock)
-{
-    if (flock)
-    {
-        ModuleAddRef();
-    }
-    else
-    {
-        ModuleRelease();
-    }
-
-    return S_OK;
-}
-
-
-// TODO: define CONST_VTABLE
-
-static /*const*/ IClassFactoryVtbl classFactoryVtbl = {classQueryInterface, IClassFactory_AddRef, IClassFactory_Release,
-                                                       IClassFactory_CreateInstance, IClassFactory_LockServer};
-
-static IClassFactory MyIClassFactoryObj = {&classFactoryVtbl};
-
-HRESULT create_property_store_class_factory(_In_ REFCLSID interface_id, _Outptr_ void **result)
-{
-    UNREFERENCED_PARAMETER(interface_id);
-    UNREFERENCED_PARAMETER(result);
-
-    return classQueryInterface(&MyIClassFactoryObj, interface_id, result);
+    return IClassFactory_QueryInterface(&classFactory, interfaceId, result);
 }

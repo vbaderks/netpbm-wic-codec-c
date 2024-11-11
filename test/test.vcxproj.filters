@@ -21,5 +21,19 @@
     <ClCompile Include="property_store_test_suite.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="netpbm_bitmap_decoder_test_suite.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="com_factory.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\guids.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="com_factory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

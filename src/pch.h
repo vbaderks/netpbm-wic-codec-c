@@ -11,3 +11,4 @@
 #include <propkeydef.h>
 #include <propvarutil.h>
 #include <propkey.h>
+#include <wincodec.h>

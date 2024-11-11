@@ -109,18 +109,13 @@
         NOMCX: Exclude includes for Modem Configuration Extensions from Windows.h (not used).
         NOIME: Exclude includes for Input Method Manager definitions from Windows.h (not used).
         NOMINMAX: Prevent that the Windows SDK header files define the macros min and max (conflict with C++ std::min\max).
-
-        * WINRT *
-        WINRT_LEAN_AND_MEAN: Disables rarely-used features (in order to reduce compile times)
-        WINRT_NO_SOURCE_LOCATION (prevents full namespace names in the binary).
+        CONST_VTABLE: Ensure COM v-tables are defined const.
+        __SPECSTRINGS_STRICT_LEVEL = 2: Highest level of SAL annotation checking. (default is level 1)
 
         * Secure C Runtime *
         __STDC_WANT_SECURE_LIB__=1;
-
-        * Microsoft STL *
-        _USE_DETAILED_FUNCTION_NAME_IN_SOURCE_LOCATION=0: Keep function name info short to reduce binary size.
       -->
-      <PreprocessorDefinitions>WIN32_LEAN_AND_MEAN;NOSERVICE;NOMCX;NOIME;NOMINMAX;WINRT_LEAN_AND_MEAN;WINRT_NO_SOURCE_LOCATION;__STDC_WANT_SECURE_LIB__=1;_USE_DETAILED_FUNCTION_NAME_IN_SOURCE_LOCATION=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32_LEAN_AND_MEAN;NOSERVICE;NOMCX;NOIME;NOMINMAX;CONST_VTABLE;__SPECSTRINGS_STRICT_LEVEL=2;__STDC_WANT_SECURE_LIB__=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
 
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
 
